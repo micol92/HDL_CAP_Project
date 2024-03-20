@@ -1,0 +1,8 @@
+{
+  "MY_BOOKSHOP_BOOK_REVIEWS_SYNONYM": {
+    "target": {
+      "object": "BOOK_REVIEWS",
+      "schema": "BOOKSHOP"
+    }
+  }
+}

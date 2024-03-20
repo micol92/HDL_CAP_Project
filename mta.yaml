@@ -1,0 +1,65 @@
+_schema-version: "3.1"
+ID: HDL_CAP_Project
+description: A simple CAP project.
+version: 1.0.0
+modules:
+- name: HDL_CAP_Project-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: HDL_CAP_Project-db
+  - name: HDL_CAP_Project-uaa
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+  build-parameters:
+    builder: npm
+- name: HDL_CAP_Project-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: HDL_CAP_Project-db
+    properties:
+      TARGET_CONTAINER: ~{hdi-container-name}
+  - name: cross-container-service-1
+    group: SERVICE_REPLACEMENTS
+    properties:
+      key: ServiceName_1
+      service: ~{the-service-name}
+  parameters:
+    buildpack: nodejs_buildpack
+resources:
+- name: HDL_CAP_Project-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    config:
+      database_id: 2ec0a886-207d-4c67-bde0-bbec20c27977
+    service: hana
+    service-plan: hdi-shared
+  properties:
+    hdi-container-name: ${service-name}
+- name: cross-container-service-1
+  type: org.cloudfoundry.existing-service
+  parameters:
+    service-name: My_HANA_Connection
+  properties:
+    the-service-name: ${service-name}
+- name: HDL_CAP_Project-uaa
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: xsuaa
+    service-plan: application
+    path: ./xs-security.json
+    config:
+      xsappname: HDL_CAP_Project-uaa
+      tenant-mode: dedicated    
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npx cds build --production
